@@ -15,8 +15,11 @@ End Enum
 ''' </summary>
 Public Class AppSettings
 
-    ''' <summary>Number of backups kept locally and on Nextcloud. Oldest are deleted first.</summary>
-    Public Const KeepCount As Integer = 10
+    ''' <summary>
+    ''' Backups older than this many months are deleted locally and on Nextcloud.
+    ''' The newest backup of each directory is always kept, however old it is.
+    ''' </summary>
+    Public Const KeepMonths As Integer = 1
 
     ''' <summary>The folders that can be backed up, in display order. Also used in the backup file names.</summary>
     Public Shared ReadOnly SourceNames As String() = {"Master Control", "CrowdGate", "Alarm"}

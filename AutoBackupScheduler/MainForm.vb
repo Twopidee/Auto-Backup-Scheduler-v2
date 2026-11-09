@@ -380,7 +380,7 @@ Public Class MainForm
             Try
                 SetBusy(True, $"Backing up {name}...")
                 Log($"{reason}: backing up the {name} directory ({source})")
-                Dim result = Await Task.Run(Function() BackupEngine.CreateBackup(source, BackupEngine.BackupBaseName(name), target, AppSettings.KeepCount))
+                Dim result = Await Task.Run(Function() BackupEngine.CreateBackup(source, BackupEngine.BackupBaseName(name), target, AppSettings.KeepMonths))
 
                 Log($"Created {Path.GetFileName(result.ZipPath)} ({result.FilesAdded:N0} files, {FormatSize(New FileInfo(result.ZipPath).Length)}).")
                 If result.SkippedItems.Count > 0 Then
@@ -391,7 +391,7 @@ Public Class MainForm
                     If result.SkippedItems.Count > 10 Then Log($"    ...and {result.SkippedItems.Count - 10} more.")
                 End If
                 For Each deletedName In result.DeletedBackups
-                    Log($"Removed old backup {deletedName} (keeping the newest {AppSettings.KeepCount}).")
+                    Log($"Removed old backup {deletedName} (older than {AppSettings.KeepMonths} month(s)).")
                 Next
                 anySucceeded = True
             Catch ex As Exception
@@ -438,7 +438,7 @@ Public Class MainForm
 
     ''' <summary>
     ''' For each directory, uploads every local backup that isn't on the server yet (so a failed upload is
-    ''' retried next time), then deletes the oldest ones on the server so only the newest 10 remain there too.
+    ''' retried next time), then deletes the ones on the server older than a month (always keeping the newest).
     ''' </summary>
     Private Async Function SyncToNextcloudAsync(localFolder As String, baseNames As IEnumerable(Of String)) As Task
         Dim s = _settings
@@ -460,7 +460,7 @@ Public Class MainForm
                 Dim remoteBackups = remoteNames.Where(Function(n) BackupEngine.IsBackupFileName(n, baseName)).
                                                 OrderByDescending(Function(n) n, StringComparer.OrdinalIgnoreCase).
                                                 ToList()
-                For Each old In remoteBackups.Skip(AppSettings.KeepCount)
+                For Each old In BackupEngine.ExpiredBackups(remoteBackups, AppSettings.KeepMonths)
                     Await client.DeleteFileAsync(remoteFolder, old)
                     remoteNames.Remove(old)
                     Log($"Removed old backup {old} from Nextcloud.")

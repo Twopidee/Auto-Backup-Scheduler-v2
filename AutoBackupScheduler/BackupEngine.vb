@@ -11,7 +11,7 @@ End Class
 
 ''' <summary>
 ''' Creates timestamped zip backups named "Backup_{ComputerName}_{SourceName}_{yyyy-MM-dd_HH-mm-ss}.zip"
-''' (e.g. "Backup_PC1_MasterControl_...") and keeps only the newest ones per source. The computer name keeps
+''' (e.g. "Backup_PC1_MasterControl_...") and deletes ones older than a set number of months. The computer name keeps
 ''' backups from different locations apart, so one computer's cleanup never deletes another computer's
 ''' backups in a shared Nextcloud folder.
 ''' </summary>
@@ -36,6 +36,30 @@ Public Module BackupEngine
         Return Regex.IsMatch(fileName, pattern, RegexOptions.IgnoreCase)
     End Function
 
+    ''' <summary>The time a backup was made, read from its file name (or path), or Nothing if it can't be read.</summary>
+    Public Function BackupTimestamp(fileName As String) As DateTime?
+        Dim name = Path.GetFileNameWithoutExtension(fileName)
+        If name.Length < TimestampFormat.Length Then Return Nothing
+        Dim stamp As DateTime
+        If DateTime.TryParseExact(name.Substring(name.Length - TimestampFormat.Length), TimestampFormat,
+                                  Globalization.CultureInfo.InvariantCulture, Globalization.DateTimeStyles.None, stamp) Then
+            Return stamp
+        End If
+        Return Nothing
+    End Function
+
+    ''' <summary>
+    ''' The backups (newest first) that are older than <paramref name="keepMonths"/> months.
+    ''' The newest backup is never included, so there is always at least one left even if backups stopped running.
+    ''' </summary>
+    Public Function ExpiredBackups(backupsNewestFirst As IEnumerable(Of String), keepMonths As Integer) As List(Of String)
+        Dim cutoff = DateTime.Now.AddMonths(-keepMonths)
+        Return backupsNewestFirst.Skip(1).Where(Function(b)
+                                                    Dim stamp = BackupTimestamp(b)
+                                                    Return stamp.HasValue AndAlso stamp.Value < cutoff
+                                                End Function).ToList()
+    End Function
+
     Public Function IsSameOrInside(target As String, folder As String) As Boolean
         Return NormalizeDir(target).StartsWith(NormalizeDir(folder), StringComparison.OrdinalIgnoreCase)
     End Function
@@ -53,7 +77,7 @@ Public Module BackupEngine
             ToList()
     End Function
 
-    Public Function CreateBackup(sourceFolder As String, baseName As String, backupFolder As String, keep As Integer) As BackupResult
+    Public Function CreateBackup(sourceFolder As String, baseName As String, backupFolder As String, keepMonths As Integer) As BackupResult
         If String.IsNullOrWhiteSpace(sourceFolder) OrElse Not Directory.Exists(sourceFolder) Then
             Throw New DirectoryNotFoundException($"The folder to back up was not found: {sourceFolder}")
         End If
@@ -90,7 +114,7 @@ Public Module BackupEngine
             Throw
         End Try
 
-        result.DeletedBackups = ApplyRetention(backupFolder, baseName, keep)
+        result.DeletedBackups = ApplyRetention(backupFolder, baseName, keepMonths)
         Return result
     End Function
 
@@ -146,10 +170,10 @@ Public Module BackupEngine
         End While
     End Sub
 
-    ''' <summary>Deletes the oldest backups so only the newest <paramref name="keep"/> remain.</summary>
-    Public Function ApplyRetention(backupFolder As String, baseName As String, keep As Integer) As List(Of String)
+    ''' <summary>Deletes backups older than <paramref name="keepMonths"/> months (always keeping the newest one).</summary>
+    Public Function ApplyRetention(backupFolder As String, baseName As String, keepMonths As Integer) As List(Of String)
         Dim deleted As New List(Of String)
-        For Each old In ListBackups(backupFolder, baseName).Skip(keep)
+        For Each old In ExpiredBackups(ListBackups(backupFolder, baseName), keepMonths)
             Try
                 File.Delete(old)
                 deleted.Add(Path.GetFileName(old))

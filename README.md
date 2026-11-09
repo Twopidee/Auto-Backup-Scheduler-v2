@@ -1,7 +1,7 @@
 # Auto Backup Scheduler v2
 
 A VB.NET Windows Forms app that zips up to three directories (**Master Control**, **CrowdGate** and
-**Alarm**) into timestamped backups, keeps the newest 10 of each, and uploads them to a Nextcloud server.
+**Alarm**) into timestamped backups, keeps the last month of each, and uploads them to a Nextcloud server.
 Leave a directory blank to skip it. All three share one backup storage folder.
 
 ## Open / build
@@ -18,8 +18,8 @@ Manual and scheduled backups back up every directory that is filled in; a backup
 backs up the directory that changed.
 
 Backups are named `Backup_<ComputerName>_<Directory>_yyyy-MM-dd_HH-mm-ss.zip`, where `<Directory>` is
-`MasterControl`, `CrowdGate` or `Alarm`. Only the newest 10 of each directory are kept, both locally and
-on Nextcloud, and the oldest are deleted first. Because the computer name
+`MasterControl`, `CrowdGate` or `Alarm`. Backups older than one month are deleted, both locally and
+on Nextcloud (the newest backup of each directory is always kept, even if it is older). Because the computer name
 is part of the file name, each computer only cleans up its own backups, even if several locations
 upload to the same Nextcloud folder.
 
