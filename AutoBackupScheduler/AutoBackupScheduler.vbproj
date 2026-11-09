@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <RootNamespace>AutoBackupScheduler</RootNamespace>
+    <AssemblyName>AutoBackupScheduler</AssemblyName>
+    <StartupObject>AutoBackupScheduler.Program</StartupObject>
+    <MyType>WindowsFormsWithCustomSubMain</MyType>
+    <OptionStrict>On</OptionStrict>
+    <OptionInfer>On</OptionInfer>
+    <OptionExplicit>On</OptionExplicit>
+    <Product>Auto Backup Scheduler v2</Product>
+    <Version>2.0.0</Version>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Tells Visual Studio to open MainForm in the Windows Forms designer. -->
+    <Compile Update="MainForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <!-- Built entirely in code (no .Designer.vb), so open it as code; the designer would rewrite it. -->
+    <Compile Update="RemoteFolderDialog.vb">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+
+</Project>
