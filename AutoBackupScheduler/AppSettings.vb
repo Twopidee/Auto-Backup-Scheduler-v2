@@ -52,7 +52,7 @@ Public Class AppSettings
     Public Property NextcloudUserProtected As String = ""
     Public Property NextcloudPasswordProtected As String = ""
     ''' <summary>Folder inside <see cref="NextcloudBaseFolder"/> on the server ("" = the base folder itself).</summary>
-    Public Property NextcloudFolder As String = "Backups"
+    Public Property NextcloudFolder As String = ""
     Public Property AllowInvalidCertificate As Boolean = False
 
     ' Older versions saved the server URL and username as plain text. They are read once,
@@ -67,7 +67,7 @@ Public Class AppSettings
     Public Property StartWithWindows As Boolean = False
 
     ''' <summary>Backups always go somewhere inside this folder on the Nextcloud server.</summary>
-    Public Const NextcloudBaseFolder As String = "Work stuff"
+    Public Const NextcloudBaseFolder As String = "Work stuff/CCW/Backups"
 
     Public Const PasswordUnreadableMessage As String =
         "The saved Nextcloud server URL, username or app password can't be read on this computer or Windows account. " &
@@ -117,17 +117,25 @@ Public Class AppSettings
 
     ''' <summary>
     ''' Cleans up a remote folder typed by the user so it is relative to <see cref="NextcloudBaseFolder"/>:
-    ''' "Work stuff/Backups/" and "\Backups" both become "Backups". "." and ".." are dropped so the
+    ''' "Work stuff/CCW/Backups/PC/", "CCW/Backups/PC" and "\PC" all become "PC". "." and ".." are dropped so the
     ''' path can never point outside the base folder.
     ''' </summary>
     Public Shared Function NormalizeRemoteFolder(folder As String) As String
         Dim parts = If(folder, "").Split({"/"c, "\"c}, StringSplitOptions.RemoveEmptyEntries Or StringSplitOptions.TrimEntries).
                                    Where(Function(p) p <> "." AndAlso p <> "..").ToList()
-        If parts.Count > 0 AndAlso parts(0).Equals(NextcloudBaseFolder, StringComparison.OrdinalIgnoreCase) Then parts.RemoveAt(0)
+        ' Strip a leading "Work stuff/CCW/Backups", or a leading "CCW/Backups" saved back when the base was just "Work stuff".
+        Dim baseParts = NextcloudBaseFolder.Split("/"c)
+        For Each prefix In {baseParts, baseParts.Skip(1).ToArray()}
+            If prefix.Length > 0 AndAlso parts.Count >= prefix.Length AndAlso
+               parts.Take(prefix.Length).SequenceEqual(prefix, StringComparer.OrdinalIgnoreCase) Then
+                parts.RemoveRange(0, prefix.Length)
+                Exit For
+            End If
+        Next
         Return String.Join("/", parts)
     End Function
 
-    ''' <summary>The full path on the server, e.g. "Backups" becomes "Work stuff/Backups".</summary>
+    ''' <summary>The full path on the server, e.g. "PC" becomes "Work stuff/CCW/Backups/PC".</summary>
     Public Shared Function FullRemoteFolder(relativeFolder As String) As String
         Dim relative = NormalizeRemoteFolder(relativeFolder)
         Return If(relative = "", NextcloudBaseFolder, NextcloudBaseFolder & "/" & relative)

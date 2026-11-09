@@ -38,9 +38,10 @@ upload to the same Nextcloud folder.
 - **App password**: create one in Nextcloud under *Settings > Security > Devices & sessions*.
 - The server URL, username and app password are hidden on screen, stored encrypted with Windows
   DPAPI, and removed from error messages in the log.
-- **Remote folder**: always inside the `Work stuff` folder on the server (e.g. `Backups/PC` means
-  `Work stuff/Backups/PC`). Click *Browse...* to pick a folder or create new folders inside
-  `Work stuff`. Typed folders are created automatically.
+- **Remote folder**: always inside the `Work stuff/CCW/Backups` folder on the server (e.g. `PC` means
+  `Work stuff/CCW/Backups/PC`; leave it empty to upload straight into `Work stuff/CCW/Backups`).
+  Click *Browse...* to pick a folder or create new folders inside `Work stuff/CCW/Backups`.
+  Typed folders are created automatically.
 - Turn on *Allow self-signed certificate* if your home server uses a self-signed HTTPS certificate.
 
 If an upload fails, the local backup is kept, and missing backups are uploaded after the next successful backup.

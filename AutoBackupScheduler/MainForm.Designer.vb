@@ -482,10 +482,10 @@ Partial Class MainForm
         '
         'txtRemote
         '
-        Me.txtRemote.Location = New System.Drawing.Point(195, 154)
+        Me.txtRemote.Location = New System.Drawing.Point(265, 154)
         Me.txtRemote.Name = "txtRemote"
-        Me.txtRemote.PlaceholderText = "Backups"
-        Me.txtRemote.Size = New System.Drawing.Size(135, 23)
+        Me.txtRemote.PlaceholderText = "(subfolder)"
+        Me.txtRemote.Size = New System.Drawing.Size(65, 23)
         Me.txtRemote.TabIndex = 4
         '
         'lblRemoteBase
@@ -493,7 +493,7 @@ Partial Class MainForm
         Me.lblRemoteBase.AutoSize = True
         Me.lblRemoteBase.Location = New System.Drawing.Point(120, 157)
         Me.lblRemoteBase.Name = "lblRemoteBase"
-        Me.lblRemoteBase.Text = "Work stuff /"
+        Me.lblRemoteBase.Text = "Work stuff/CCW/Backups /"
         '
         'btnBrowseRemote
         '

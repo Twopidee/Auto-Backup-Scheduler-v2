@@ -47,6 +47,9 @@ Public Class MainForm
         Log("Auto Backup Scheduler v2 started.")
 
         lblRemoteBase.Text = AppSettings.NextcloudBaseFolder & " /"
+        ' Fit the subfolder box between the base-folder label and the Browse button.
+        txtRemote.Left = lblRemoteBase.Right + 2
+        txtRemote.Width = btnBrowseRemote.Left - 5 - txtRemote.Left
 
         If _settings.NextcloudEnabled AndAlso _settings.NextcloudCredentialsUnreadable Then
             Log("WARNING: " & AppSettings.PasswordUnreadableMessage)
